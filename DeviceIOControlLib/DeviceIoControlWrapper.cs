@@ -114,10 +114,10 @@ namespace DeviceIOControlLib
                 res.Geometry = (DISK_GEOMETRY)Marshal.PtrToStructure(dataPtr, typeof(DISK_GEOMETRY));
                 res.DiskSize = BitConverter.ToInt64(data, Marshal.SizeOf(typeof(DISK_GEOMETRY)));
 
-                IntPtr tmpPtr = dataPtr + Marshal.SizeOf(typeof(DISK_GEOMETRY)) + sizeof(long);
+                IntPtr tmpPtr = new IntPtr(dataPtr.ToInt64() + Marshal.SizeOf(typeof(DISK_GEOMETRY)) + sizeof(long));
                 res.PartitionInformation = (DISK_PARTITION_INFO)Marshal.PtrToStructure(tmpPtr, typeof(DISK_PARTITION_INFO));
 
-                tmpPtr += res.PartitionInformation.SizeOfPartitionInfo;
+                tmpPtr = new IntPtr(tmpPtr.ToInt64() + res.PartitionInformation.SizeOfPartitionInfo);
                 res.DiskInt13Info = (DISK_EX_INT13_INFO)Marshal.PtrToStructure(tmpPtr, typeof(DISK_EX_INT13_INFO));
             }
             finally
@@ -394,18 +394,18 @@ namespace DeviceIOControlLib
                     switch (res[i].Stats.FileSystemType)
                     {
                         case FILESYSTEM_STATISTICS_TYPE.FILESYSTEM_STATISTICS_TYPE_NTFS:
-                            NTFS_STATISTICS ntfsStats = (NTFS_STATISTICS)Marshal.PtrToStructure(currentDataPtr + fsStatsSize, typeof(NTFS_STATISTICS));
+                            NTFS_STATISTICS ntfsStats = (NTFS_STATISTICS)Marshal.PtrToStructure(new IntPtr(currentDataPtr.ToInt64() + fsStatsSize), typeof(NTFS_STATISTICS));
 
                             res[i].FSStats = ntfsStats;
 
                             break;
                         case FILESYSTEM_STATISTICS_TYPE.FILESYSTEM_STATISTICS_TYPE_FAT:
-                            FAT_STATISTICS fatStats = (FAT_STATISTICS)Marshal.PtrToStructure(currentDataPtr + fsStatsSize, typeof(FAT_STATISTICS));
+                            FAT_STATISTICS fatStats = (FAT_STATISTICS)Marshal.PtrToStructure(new IntPtr(currentDataPtr.ToInt64() + fsStatsSize), typeof(FAT_STATISTICS));
 
                             res[i].FSStats = fatStats;
                             break;
                         case FILESYSTEM_STATISTICS_TYPE.FILESYSTEM_STATISTICS_TYPE_EXFAT:
-                            EXFAT_STATISTICS exFatStats = (EXFAT_STATISTICS)Marshal.PtrToStructure(currentDataPtr + fsStatsSize, typeof(EXFAT_STATISTICS));
+                            EXFAT_STATISTICS exFatStats = (EXFAT_STATISTICS)Marshal.PtrToStructure(new IntPtr(currentDataPtr.ToInt64() + fsStatsSize), typeof(EXFAT_STATISTICS));
 
                             res[i].FSStats = exFatStats;
                             break;
@@ -413,7 +413,7 @@ namespace DeviceIOControlLib
                             throw new ArgumentOutOfRangeException();
                     }
 
-                    currentDataPtr += elementSize;
+                    currentDataPtr = new IntPtr(currentDataPtr.ToInt64() + elementSize);
                 }
             }
             finally
@@ -506,7 +506,7 @@ namespace DeviceIOControlLib
 
                     for (ulong i = 0; i < output.ExtentCount; i++)
                     {
-                        IntPtr currentPtr = dataPtr + (int)(singleExtentSize * i);
+                        IntPtr currentPtr = new IntPtr(dataPtr.ToInt64() + (int)(singleExtentSize * i));
                         output.Extents[i] = (RETRIEVAL_POINTERS_EXTENT)Marshal.PtrToStructure(currentPtr, typeof(RETRIEVAL_POINTERS_EXTENT));
                     }
 
@@ -732,7 +732,7 @@ namespace DeviceIOControlLib
                 // TODO: This code needs to be tested for disks with more than one extent.
                 for (int i = 0; i < res.NumberOfDiskExtents; i++)
                 {
-                    IntPtr currentDataPtr = dataPtr + 8 + i * Marshal.SizeOf(typeof(DISK_EXTENT));
+                    IntPtr currentDataPtr = new IntPtr(dataPtr.ToInt64() + 8 + i * Marshal.SizeOf(typeof(DISK_EXTENT)));
                     DISK_EXTENT extent = (DISK_EXTENT)Marshal.PtrToStructure(currentDataPtr, typeof(DISK_EXTENT));
 
                     res.Extents[i] = extent;
